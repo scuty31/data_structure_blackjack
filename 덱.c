@@ -29,7 +29,7 @@ int is_full(deck *d) {
 	return (d->top == MAX_CARD_SIZE - 1);
 }
 
-void push(deck* d, element card) {	//근데 여기와서는 d의 주소가 바뀜
+void push(deck* d, element card) {
 	if (is_full(d)) {
 		fprintf(stderr, "스택 포화 에러");
 		return;
@@ -52,22 +52,31 @@ element pop(deck* d) {
 
 void showcard(element card);
 
-void shakedeak(deck *d);
+void shakedeak(element cards[]);
 
 int main(void) {
 	deck card_deck;
+	element cards[52];
+	element card;
+	int i = 0, n;
 
 	init_stack(&card_deck);
 
-	shakedeak(&card_deck);
-	int i=0, n;
+	shakedeak(cards);
+
+	for (i = 0; i < MAX_CARD_SIZE; i++) {
+		push(&card_deck, cards[i]);
+	}
 
 	printf("카드 몇장 뽑음?\n");
 	scanf("%d", &n);
-
+	
+	i = 0;
 	while (i < n) {
-		showcard(pop(&card_deck));
+		card = pop(&card_deck);
+		showcard(card);
 		printf("\n");
+		i++;
 	}
 }
 
@@ -112,8 +121,7 @@ void showcard(element card) {	//카드 출력
 	}
 }
 
-void shakedeak(deck *d) {
-	element cards[52];
+void shakedeak(element* cards) {
 	element card;
 	int k[52];
 
@@ -137,9 +145,5 @@ void shakedeak(deck *d) {
 			cards[y].num = tmp.num;
 			strcpy(cards[y].pattern, tmp.pattern);
 		}
-	}
-
-	for (int i = 0; i < 52; i++) {
-		push(&d, cards[i]);	//여기에서는 d의 주소가 정상적으로 출력이 
 	}
 }
