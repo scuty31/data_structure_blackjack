@@ -2,96 +2,144 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define MAX_CARD_SIZE 52
+
 typedef struct cards {
-	char pattern;
+	char pattern[3];
 	int num;
 }element;
 
-#define MAX_CARD_SIZE 52
-#define spade 06
-#define club 05
-#define diamond 04
-#define heart 03
+typedef struct decks{
+	element data[MAX_CARD_SIZE];
+	int top;
+}deck;
 
-int top = -1;
+char shape[4][3] = { "â™ ", "â—†", "â™¥", "â™£" };
 
-element deck[MAX_CARD_SIZE];	//µ¦(½ºÅÃ) »ı¼º
-
-//---------------------½ºÅÃ°ü·Ã ÇÔ¼ö----------------------------
-int is_empty() {
-	return (top == -1);
+//---------------------ìŠ¤íƒê´€ë ¨ í•¨ìˆ˜----------------------------
+void init_stack(deck* d) {
+	d->top = -1;
 }
 
-int is_full() {
-	return (top = MAX_CARD_SIZE);
+int is_empty(deck *d) {
+	return (d->top == -1);
 }
 
-void push(element data) {
-	if (is_full()) {
-		fprintf(stderr, "½ºÅÃ Æ÷È­ ¿¡·¯");
+int is_full(deck *d) {
+	return (d->top == MAX_CARD_SIZE - 1);
+}
+
+void push(deck* d, element card) {	//ê·¼ë° ì—¬ê¸°ì™€ì„œëŠ” dì˜ ì£¼ì†Œê°€ ë°”ë€œ
+	if (is_full(d)) {
+		fprintf(stderr, "ìŠ¤íƒ í¬í™” ì—ëŸ¬");
 		return;
 	}
 	else {
-		deck[++top] = data;
+		d->data[++(d->top)] = card;
 	}
 }
 
-element pop() {
-	if (is_empty()) {
-		fprintf(stderr, "½ºÅÃ °ø¹é ¿¡·¯");
+element pop(deck* d) {
+	if (is_empty(d)) {
+		fprintf(stderr, "ìŠ¤íƒ ê³µë°± ì—ëŸ¬");
 		return;
 	}
 	else {
-		return deck[top--];
+		return d->data[(d->top)--];
 	}
 }
 //--------------------------------------------------
 
 void showcard(element card);
 
-void shakedeak();
+void shakedeak(deck *d);
 
 int main(void) {
+	deck card_deck;
 
+	init_stack(&card_deck);
+
+	shakedeak(&card_deck);
+	int i=0, n;
+
+	printf("ì¹´ë“œ ëª‡ì¥ ë½‘ìŒ?\n");
+	scanf("%d", &n);
+
+	while (i < n) {
+		showcard(pop(&card_deck));
+		printf("\n");
+	}
 }
 
-void showcard(element card) {	//Ä«µå Ãâ·Â
+void showcard(element card) {	//ì¹´ë“œ ì¶œë ¥
 	if (card.num == 1) {
 		printf("-------\n");
-		printf("|%c    |\n", card.pattern);
+		printf("|%s    |\n", card.pattern);
 		printf("|  A  |\n");
-		printf("|    %c|\n", card.pattern);
+		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
 	else if (card.num < 11) {
 		printf("-------\n");
-		printf("|%c    |\n", card.pattern);
+		printf("|%s    |\n", card.pattern);
 		printf("|  %d  |\n", card.num);
-		printf("|    %c|\n", card.pattern);
+		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
 	else if (card.num == 11) {
 		printf("-------\n");
-		printf("|%c    |\n", card.pattern);
+		printf("|%s    |\n", card.pattern);
 		printf("|  J  |\n");
-		printf("|    %c|\n", card.pattern);
+		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
 	else if (card.num == 12) {
 		printf("-------\n");
-		printf("|%c    |\n", card.pattern);
+		printf("|%s    |\n", card.pattern);
 		printf("|  Q  |\n");
-		printf("|    %c|\n", card.pattern);
+		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
 	else if (card.num == 13) {
 		printf("-------\n");
-		printf("|%c    |\n", card.pattern);
+		printf("|%s    |\n", card.pattern);
 		printf("|  K  |\n");
-		printf("|    %c|\n", card.pattern);
+		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
 	else {
-		fprintf(stderr, "Ä«µå ¿¡·¯");
+		fprintf(stderr, "ì¹´ë“œ ì—ëŸ¬");
+	}
+}
+
+void shakedeak(deck *d) {
+	element cards[52];
+	element card;
+	int k[52];
+
+	for (int i = 0; i < 52; i++) {
+		strcpy(card.pattern, shape[i/13]);
+		card.num = (i%13) + 1;
+		cards[i] = card;
+		k[i] = i;
+	}	// set cards
+
+	for (int i = 0; i < 300; i++) {
+		int x = rand() % 52;
+		int y = rand() % 52;
+		element tmp;
+
+		if (x != y) {
+			tmp.num = cards[x].num;
+			strcpy(tmp.pattern, cards[x].pattern);
+			cards[x].num = cards[y].num;
+			strcpy(cards[x].pattern, cards[y].pattern);
+			cards[y].num = tmp.num;
+			strcpy(cards[y].pattern, tmp.pattern);
+		}
+	}
+
+	for (int i = 0; i < 52; i++) {
+		push(&d, cards[i]);	//ì—¬ê¸°ì—ì„œëŠ” dì˜ ì£¼ì†Œê°€ ì •ìƒì ìœ¼ë¡œ ì¶œë ¥ì´ 
 	}
 }
