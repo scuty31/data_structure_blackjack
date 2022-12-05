@@ -17,14 +17,26 @@ typedef struct decks {	//덱
 	int top;
 }deck;
 
-typedef struct player {
-	int bet;
-	int hand;
-} player1, player2, player3, user, dealer;
+//typedef struct Node { // 이중 연결 리스트를 위한 노드
+//	int data;
+//	Node* next, * prev;
+//} Node ;
+//
+//typedef struct DLinkedList { // 이중 연결 리스트
+//	Node * head;
+//	Node * tail;
+//	int count;
+//}DLinkedList;
 
-//--------------------------------------------------
+ typedef struct player {
+	int bet;
+	int turn;
+} player;
+
+ //--------------------- 구조체 끝 ------------------------------
 
 //---------------------스택관련 함수----------------------------
+
 void init_stack(deck* d) {
 	d->top = -1;
 }
@@ -56,15 +68,14 @@ element pop(deck* d) {
 		return d->data[(d->top)--];
 	}
 }
-//--------------------------------------------------
+
+//---------------------스택관련 함수 끝-------------------------
 
 
 //---- 전역변수 ------------------------------------
+
 int player_num;
 char shape[4][3] = { "♠", "◆", "♥", "♣" };	//카드 문양
-
-
-
 
 //--------------------------------------------------
 
@@ -81,7 +92,7 @@ int start() {
 	scanf("%c", &choice1);
 
 	// Y나 N을 누르지 않을경우
-	while ((choice1 != 'Y') && (choice1 != 'y') && (choice1 != 'N') && (choice1 != 'n')) 
+	while ((choice1 != 'Y') && (choice1 != 'y') && (choice1 != 'N') && (choice1 != 'n'))
 	{
 		printf("\n");
 		printf("입력이 잘못되었습니다. 다시 입력해주세요 [Y/N].\n");
@@ -90,8 +101,17 @@ int start() {
 
 	// Y나 N을 누를 경우
 	if (choice1 == 'Y' || choice1 == 'y') {
-		printf("\n       PLAYER를 몇 명으로 하시겠습니까?        ");
+		printf("\n     CPU PLAYER를 몇 명으로 하시겠습니까?      ");
+		printf("\n                CPU PLAYER [1/2/3]             ");
 		scanf("%d", &player_num);
+		// CPU PLAYER 입력이 올바르지 않을 경우
+		while (player_num != 3 && player_num != 2 && player_num != 1) {
+			printf("\n숫자 3, 2, 1 중에서 입력해주시기 바랍니다.");
+			scanf("%d", &player_num);
+		}
+		if (player_num == 3 || player_num == 2 || player_num == 1) {
+			printf("\n     CPU PLAYER 인원이 총 %d명으로 세팅되었습니다.     ", player_num);
+		}
 	}
 	else if (choice1 == 'N' || choice1 == 'n') {
 		printf("             게임을 종료하겠습니다.             \n");
@@ -99,6 +119,43 @@ int start() {
 
 	return player_num;
 }
+
+int betting(player * user) {
+	user->bet = 100;
+	int temp = user->bet;
+	int n_bet;
+	printf("\n            게임을 시작하겠습니다.           ");
+	printf("\n     %d$중에서 얼마를 베팅하시겠습니까?       ", user->bet);
+	
+	n_bet = 0;
+	scanf("%d", &n_bet);
+
+	user->bet = temp - n_bet;
+	printf("\n          %d의 금액 배팅 진행하겠습니다.          ", n_bet);
+	printf("\n               잔여 배팅 금액: %d               \n", user->bet);
+	
+	return n_bet;
+}
+
+//void play(player_num) {
+//	if (player_num == 4) {
+//		user_play();
+//		dealer_play();
+//		player1_play();
+//		player2_play();
+//		player3_play();
+//	}
+//	else if (player_num == 3) {
+//
+//	}
+//	else if (player_num == 2) {
+//
+//	}
+//	else if (player_num == 1) {
+//
+//	}
+//	
+//}
 
 //카드 출력 함수
 void showcard(element card) {	//카드 출력
@@ -142,7 +199,6 @@ void showcard(element card) {	//카드 출력
 	}
 }
 
-
 //카드 섞는수 함수
 void shakedeak(element* cards) {
 	element card;
@@ -171,13 +227,14 @@ void shakedeak(element* cards) {
 	}
 }
 
-//--------------------------------------------------
+//---- 함수 끝 -------------------------------------
 
 
 int main(void) {
 	deck card_deck;
 	element cards[52];
 	element card;
+	player user;
 	int i = 0;
 
 	// 스택 초기화했습니다.
@@ -190,18 +247,22 @@ int main(void) {
 	for (i = 0; i < MAX_CARD_SIZE; i++) {
 		push(&card_deck, cards[i]);
 	}
-
 	// 시작 함수 player수를 리턴해줍니다
 	start();
-	//user();
-	//dealer();
-	//player_1();
-	//player_2();
-	//player_3();
+
+	// 베팅 함수 
+	betting(&user);
+
+	//play(player_num);
+	//user_play();
+	//dealer_play();
+	//player1_play();
+	//player2_play();
+	//player3_play();
 
 	// 플레이어 수에 따라서 카드를 보여주기 위한 코드
 	i = 0;
-	while (i < player_num) {
+	while (i < player_num +2) {
 		card = pop(&card_deck);
 		showcard(card);
 		printf("\n");
