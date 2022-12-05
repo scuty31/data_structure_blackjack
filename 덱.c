@@ -9,12 +9,12 @@ typedef struct cards {
 	int num;
 }element;
 
-typedef struct decks{
+typedef struct decks{	//덱 
 	element data[MAX_CARD_SIZE];
 	int top;
 }deck;
 
-char shape[4][3] = { "♠", "◆", "♥", "♣" };
+char shape[4][3] = { "♠", "◆", "♥", "♣" };	//카드 문양
 
 //---------------------스택관련 함수----------------------------
 void init_stack(deck* d) {
@@ -50,9 +50,8 @@ element pop(deck* d) {
 }
 //--------------------------------------------------
 
-void showcard(element card);
-
-void shakedeak(element cards[]);
+void showcard(element card);	//카드 출력 함수
+void shakedeak(element cards[]);	//카드 섞는수함수
 
 int main(void) {
 	deck card_deck;
