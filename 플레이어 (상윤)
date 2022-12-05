@@ -31,6 +31,7 @@ typedef struct decks {	//덱
  typedef struct player {
 	int bet;
 	int turn;
+	int hand; // 이중연결리스트 예정
 } player;
 
  //--------------------- 구조체 끝 ------------------------------
@@ -76,6 +77,11 @@ element pop(deck* d) {
 
 int player_num;
 char shape[4][3] = { "♠", "◆", "♥", "♣" };	//카드 문양
+player user;
+player dealer;
+player player1;
+player player2;
+player player3;
 
 //--------------------------------------------------
 
@@ -91,7 +97,7 @@ int start() {
 
 	scanf("%c", &choice1);
 
-	// Y나 N을 누르지 않을경우
+	// Y나 N을 누르지 않을경우 (올바르지 않을 경우)
 	while ((choice1 != 'Y') && (choice1 != 'y') && (choice1 != 'N') && (choice1 != 'n'))
 	{
 		printf("\n");
@@ -99,12 +105,12 @@ int start() {
 		scanf("%c", &choice1);
 	}
 
-	// Y나 N을 누를 경우
+	// Y나 N을 누를 경우 (올바를 경우)
 	if (choice1 == 'Y' || choice1 == 'y') {
 		printf("\n     CPU PLAYER를 몇 명으로 하시겠습니까?      ");
 		printf("\n                CPU PLAYER [1/2/3]             ");
 		scanf("%d", &player_num);
-		// CPU PLAYER 입력이 올바르지 않을 경우
+		// CPU PLAYER 입력이 (올바르지 않을 경우)
 		while (player_num != 3 && player_num != 2 && player_num != 1) {
 			printf("\n숫자 3, 2, 1 중에서 입력해주시기 바랍니다.");
 			scanf("%d", &player_num);
@@ -130,6 +136,7 @@ int betting(player * user) {
 	n_bet = 0;
 	scanf("%d", &n_bet);
 
+	// 배팅 금액이 잔여 금액보다 클 경우 (올바르지 않을 경우)
 	if (n_bet > user->bet) {
 		while (n_bet > user->bet) {
 			printf("\n     입력할 수 있는 금액이 초과되었습니다.     ");
@@ -142,6 +149,7 @@ int betting(player * user) {
 			printf("\n               잔여 배팅 금액:               %d$\n", user->bet);
 		}
 	}
+	// 배팅 금액이 잔여 금액보다 크지 않을 경우 (올바를 경우)
 	else {
 		user->bet = temp - n_bet;
 		printf("\n          %d$의 금액 배팅 진행하겠습니다.          ", n_bet);
@@ -152,60 +160,94 @@ int betting(player * user) {
 	return n_bet;
 }
 
-//void play(player_num) {
-//	if (player_num == 4) {
-//		user_play();
-//		dealer_play();
-//		player1_play();
-//		player2_play();
-//		player3_play();
-//	}
-//	else if (player_num == 3) {
-//
-//	}
-//	else if (player_num == 2) {
-//
-//	}
-//	else if (player_num == 1) {
-//
-//	}
-//	
-//}
+void play(player_num) {
+	if (player_num == 3) {
+		user.hand += 1;
+		printf("\n유저가 카드를 총 %d장 받았습니다.", user.hand);
+		dealer.hand += 1;
+		printf("\n딜러가 카드를 총 %d장 받았습니다.", dealer.hand);
+		player1.hand += 1;
+		printf("\n플레이어1가 카드를 총 %d장 받았습니다.", player1.hand);
+		player2.hand += 1;
+		printf("\n플레이어2가 카드를 총 %d장 받았습니다.", player2.hand);
+		player3.hand += 1;
+		printf("\n플레이어3가 카드를 총 %d장 받았습니다.\n", player3.hand);
+
+		//user_play(); // 덱에서 유저는 카드를 하나 받는다
+		//dealer_play(); // 덱에서 딜러는 카드를 하나 받는다
+		//player1_play(); // 덱에서 플레이어1은 카드를 하나 받는다
+		//player2_play(); // 덱에서 플레이어2은 카드를 하나 받는다
+		//player3_play(); // 덱에서 플레이어3은 카드를 하나 받는다
+	}
+	else if (player_num == 2) {
+		user.hand += 1;
+		printf("\n유저가 카드를 총 %d장 받았습니다.", user.hand);
+		dealer.hand += 1;
+		printf("\n딜러가 카드를 총 %d장 받았습니다.", dealer.hand);
+		player1.hand += 1;
+		printf("\n플레이어1가 카드를 총 %d장 받았습니다.", player1.hand);
+		player2.hand += 1;
+		printf("\n플레이어2가 카드를 총 %d장 받았습니다.", player2.hand);
+		//user_play(); // 덱에서 유저는 카드를 하나 받는다
+		//dealer_play(); // 덱에서 딜러는 카드를 하나 받는다
+		//player1_play(); // 덱에서 플레이어1은 카드를 하나 받는다
+		//player2_play(); // 덱에서 플레이어2은 카드를 하나 받는다
+	}
+	else if (player_num == 1) {
+		user.hand += 1;
+		printf("\n유저가 카드를 총 %d장 받았습니다.", user.hand);
+		dealer.hand += 1;
+		printf("\n딜러가 카드를 총 %d장 받았습니다.", dealer.hand);
+		player1.hand += 1;
+		printf("\n플레이어1가 카드를 총 %d장 받았습니다.", player1.hand);
+		//user_play(); // 덱에서 유저는 카드를 하나 받는다
+		//dealer_play(); // 덱에서 딜러는 카드를 하나 받는다
+		//player1_play(); // 덱에서 플레이어1은 카드를 하나 받는다
+	}
+	
+}
 
 //카드 출력 함수
 void showcard(element card) {	//카드 출력
 	if (card.num == 1) {
-		printf("-------\n");
+		printf("\n-------\n");
 		printf("|%s    |\n", card.pattern);
 		printf("|  A  |\n");
 		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
-	else if (card.num < 11) {
+	else if (card.num < 10) {
+		printf("\n-------\n");
+		printf("|%s    |\n", card.pattern);
+		printf("|  %d   |\n", card.num);
+		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
+	}
+	else if (card.num == 10) {
+		printf("\n-------\n");
 		printf("|%s    |\n", card.pattern);
 		printf("|  %d  |\n", card.num);
 		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
 	else if (card.num == 11) {
-		printf("-------\n");
+		printf("\n-------\n");
 		printf("|%s    |\n", card.pattern);
-		printf("|  J  |\n");
+		printf("|  J   |\n");
 		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
 	else if (card.num == 12) {
-		printf("-------\n");
+		printf("\n-------\n");
 		printf("|%s    |\n", card.pattern);
-		printf("|  Q  |\n");
+		printf("|  Q   |\n");
 		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
 	else if (card.num == 13) {
-		printf("-------\n");
+		printf("\n-------\n");
 		printf("|%s    |\n", card.pattern);
-		printf("|  K  |\n");
+		printf("|  K   |\n");
 		printf("|    %s|\n", card.pattern);
 		printf("-------\n");
 	}
@@ -249,7 +291,12 @@ int main(void) {
 	deck card_deck;
 	element cards[52];
 	element card;
-	player user;
+	//player user;
+	//player dealer;
+	//player player1;
+	//player player2;
+	//player player3;
+
 	int i = 0;
 
 	// 스택 초기화했습니다.
@@ -268,7 +315,35 @@ int main(void) {
 	// 베팅 함수 
 	betting(&user);
 
-	//play(player_num);
+	play(player_num);
+	i = 0;
+	while (i < player_num + 2) {
+		card = pop(&card_deck);
+		showcard(card);
+		printf("\n");
+		i++;
+	}
+	_sleep(1000);
+	play(player_num);
+	i = 0;
+	while (i < player_num + 2) {
+		card = pop(&card_deck);
+		showcard(card);
+		printf("\n");
+		i++;
+	}
+	_sleep(1000);
+	play(player_num);
+	i = 0;
+	while (i < player_num + 2) {
+		card = pop(&card_deck);
+		showcard(card);
+		printf("\n");
+		i++;
+	}
+	_sleep(1000);
+
+
 	//user_play();
 	//dealer_play();
 	//player1_play();
@@ -276,13 +351,13 @@ int main(void) {
 	//player3_play();
 
 	// 플레이어 수에 따라서 카드를 보여주기 위한 코드
-	i = 0;
-	while (i < player_num +2) {
-		card = pop(&card_deck);
-		showcard(card);
-		printf("\n");
-		i++;
-	}
+	//i = 0;
+	//while (i < player_num +2) {
+	//	card = pop(&card_deck);
+	//	showcard(card);
+	//	printf("\n");
+	//	i++;
+	//}
 
 	return 0;
 }
