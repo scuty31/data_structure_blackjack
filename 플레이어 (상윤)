@@ -1,0 +1,46 @@
+#include <stdio.h>
+
+
+// 카드 구조체
+struct Card {
+    int number;
+    char shape;
+};
+
+// 선수
+typedef struct Player {
+    int cash;
+    int score;
+    struct Card card_player[21];
+} ;
+
+void start() {
+    char choice1;
+    printf("블랙잭 게임에 오신 것을 환영합니다!");
+    printf("지금 바로 시작하겠습니까? [Y/N]");
+
+    scanf("%c", &choice1);
+
+    while ((choice1 != 'Y') && (choice1 != 'y') && (choice1 != 'N') && (choice1 != 'n')) // If invalid choice entered
+    {
+        printf("\n");
+        printf("입력이 잘못되었습니다. 다시 입력해주세요 [Y/N].\n");
+        scanf("%c", &choice1);
+    }
+
+    if (choice1 == 'Y' || choice1 == 'y') {
+        printf("reset();함수를 시작하겠습니다.");
+        printf("play();함수를 시작하겠습니다.");
+    }
+    else if (choice1 == 'N' || choice1 == 'n') {
+        printf("게임을 종료하겠습니다.");
+    }
+    return;
+}
+
+
+int main(void) {
+    start();
+
+    return 0;
+}
