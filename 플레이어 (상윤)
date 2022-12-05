@@ -1,46 +1,212 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define MAX_CARD_SIZE 52
+
+//--------------------- 구조체 ---------------------------------
 
 
-// 카드 구조체
-struct Card {
-    int number;
-    char shape;
-};
+typedef struct cards {
+	char pattern[3];
+	int num;
+}element;
 
-// 선수
-typedef struct Player {
-    int cash;
-    int score;
-    struct Card card_player[21];
-} ;
+typedef struct decks {	//덱 
+	element data[MAX_CARD_SIZE];
+	int top;
+}deck;
 
-void start() {
-    char choice1;
-    printf("블랙잭 게임에 오신 것을 환영합니다!");
-    printf("지금 바로 시작하겠습니까? [Y/N]");
+typedef struct player {
+	int bet;
+	int hand;
+} player1, player2, player3, user, dealer;
 
-    scanf("%c", &choice1);
+//--------------------------------------------------
 
-    while ((choice1 != 'Y') && (choice1 != 'y') && (choice1 != 'N') && (choice1 != 'n')) // If invalid choice entered
-    {
-        printf("\n");
-        printf("입력이 잘못되었습니다. 다시 입력해주세요 [Y/N].\n");
-        scanf("%c", &choice1);
-    }
+//---------------------스택관련 함수----------------------------
+void init_stack(deck* d) {
+	d->top = -1;
+}
 
-    if (choice1 == 'Y' || choice1 == 'y') {
-        printf("reset();함수를 시작하겠습니다.");
-        printf("play();함수를 시작하겠습니다.");
-    }
-    else if (choice1 == 'N' || choice1 == 'n') {
-        printf("게임을 종료하겠습니다.");
-    }
-    return;
+int is_empty(deck* d) {
+	return (d->top == -1);
+}
+
+int is_full(deck* d) {
+	return (d->top == MAX_CARD_SIZE - 1);
+}
+
+void push(deck* d, element card) {
+	if (is_full(d)) {
+		fprintf(stderr, "스택 포화 에러");
+		return;
+	}
+	else {
+		d->data[++(d->top)] = card;
+	}
+}
+
+element pop(deck* d) {
+	if (is_empty(d)) {
+		fprintf(stderr, "스택 공백 에러");
+		return;
+	}
+	else {
+		return d->data[(d->top)--];
+	}
+}
+//--------------------------------------------------
+
+
+//---- 전역변수 ------------------------------------
+int player_num;
+char shape[4][3] = { "♠", "◆", "♥", "♣" };	//카드 문양
+
+
+
+
+//--------------------------------------------------
+
+//---- 함수 ----------------------------------------
+
+// 초기 시작 화면 몇 명의 CPU와 게임을 할 것인지 리턴
+int start() {
+	int i = 0;
+	char choice1;
+	printf("     블랙잭 게임에 오신 것을 환영합니다!     \n");
+	printf("            게임을 시작하시겠습니까?         \n");
+	printf("                    [Y/N]                      ");
+
+	scanf("%c", &choice1);
+
+	// Y나 N을 누르지 않을경우
+	while ((choice1 != 'Y') && (choice1 != 'y') && (choice1 != 'N') && (choice1 != 'n')) 
+	{
+		printf("\n");
+		printf("입력이 잘못되었습니다. 다시 입력해주세요 [Y/N].\n");
+		scanf("%c", &choice1);
+	}
+
+	// Y나 N을 누를 경우
+	if (choice1 == 'Y' || choice1 == 'y') {
+		printf("\n       PLAYER를 몇 명으로 하시겠습니까?        ");
+		scanf("%d", &player_num);
+	}
+	else if (choice1 == 'N' || choice1 == 'n') {
+		printf("             게임을 종료하겠습니다.             \n");
+	}
+
+	return player_num;
+}
+
+//카드 출력 함수
+void showcard(element card) {	//카드 출력
+	if (card.num == 1) {
+		printf("-------\n");
+		printf("|%s    |\n", card.pattern);
+		printf("|  A  |\n");
+		printf("|    %s|\n", card.pattern);
+		printf("-------\n");
+	}
+	else if (card.num < 11) {
+		printf("-------\n");
+		printf("|%s    |\n", card.pattern);
+		printf("|  %d  |\n", card.num);
+		printf("|    %s|\n", card.pattern);
+		printf("-------\n");
+	}
+	else if (card.num == 11) {
+		printf("-------\n");
+		printf("|%s    |\n", card.pattern);
+		printf("|  J  |\n");
+		printf("|    %s|\n", card.pattern);
+		printf("-------\n");
+	}
+	else if (card.num == 12) {
+		printf("-------\n");
+		printf("|%s    |\n", card.pattern);
+		printf("|  Q  |\n");
+		printf("|    %s|\n", card.pattern);
+		printf("-------\n");
+	}
+	else if (card.num == 13) {
+		printf("-------\n");
+		printf("|%s    |\n", card.pattern);
+		printf("|  K  |\n");
+		printf("|    %s|\n", card.pattern);
+		printf("-------\n");
+	}
+	else {
+		fprintf(stderr, "카드 에러");
+	}
 }
 
 
-int main(void) {
-    start();
+//카드 섞는수 함수
+void shakedeak(element* cards) {
+	element card;
+	int k[52];
 
-    return 0;
+	for (int i = 0; i < 52; i++) {
+		strcpy(card.pattern, shape[i / 13]);
+		card.num = (i % 13) + 1;
+		cards[i] = card;
+		k[i] = i;
+	}	// set cards
+
+	for (int i = 0; i < 300; i++) {
+		int x = rand() % 52;
+		int y = rand() % 52;
+		element tmp;
+
+		if (x != y) {
+			tmp.num = cards[x].num;
+			strcpy(tmp.pattern, cards[x].pattern);
+			cards[x].num = cards[y].num;
+			strcpy(cards[x].pattern, cards[y].pattern);
+			cards[y].num = tmp.num;
+			strcpy(cards[y].pattern, tmp.pattern);
+		}
+	}
+}
+
+//--------------------------------------------------
+
+
+int main(void) {
+	deck card_deck;
+	element cards[52];
+	element card;
+	int i = 0;
+
+	// 스택 초기화했습니다.
+	init_stack(&card_deck);
+
+	// 카드를 섞었습니다.
+	shakedeak(cards);
+
+	// 덱에다가 카드를 넣었습니다. 덱에 있는 카드들을 배열안에 집어 넣습니다.
+	for (i = 0; i < MAX_CARD_SIZE; i++) {
+		push(&card_deck, cards[i]);
+	}
+
+	// 시작 함수 player수를 리턴해줍니다
+	start();
+	//user();
+	//dealer();
+	//player_1();
+	//player_2();
+	//player_3();
+
+	// 플레이어 수에 따라서 카드를 보여주기 위한 코드
+	i = 0;
+	while (i < player_num) {
+		card = pop(&card_deck);
+		showcard(card);
+		printf("\n");
+		i++;
+	}
+
+	return 0;
 }
