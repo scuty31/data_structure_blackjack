@@ -51,9 +51,12 @@ void delete(hand_cards* head, hand_cards* removed);
 void print_hand(hand_cards* head);
 
 int start();		//시작 준비
+void makedeak();	//패 만들기
 void make_player(int player_num);	//플레이어 준비 함수
 void make_dealer();				//딜러 준비 함수
 void play(int player_num);		//블랙잭 플레이 함수
+void empty_deck();			//덱 비우는 함수
+void empty_hand(int player_num); //손패를 비우는 함수
 
 int betting(int u_coin, int player_num);	//배팅하는 함수
 void getCard(int num);	//카드를 받는 함수
@@ -69,9 +72,11 @@ int player_character();		//player 성격
 int dealer_character();		//dealer 성격
 void change(char* hit);
 void check_winner(int player_num); //우승자 확인
+void reset_all(int player_num);
 
 deck card_deck;
 char shape[4][3] = { "♠", "◆", "♥", "♣" };	//카드 문양
+element cards[52];	//카드 덱
 player player_arr[4];	//최대 플레이어 4명
 deal dealer;
 
@@ -81,7 +86,7 @@ int main(void) {
 	char select;
 
 	init_stack();
-
+	makedeak();
 	
 	while (player_arr[0].coin > 0) {
 		shakedeak();
@@ -279,16 +284,17 @@ void showcard(int num) {	//카드 출력
 	}
 }
 
-void shakedeak() {
-	element cards[52];	//카드 덱
-	element card;		//카드
-	srand((unsigned)time(NULL));
-
+void makedeak() {
+	element card;
 	for (int i = 0; i < 52; i++) {
 		strcpy(card.pattern, shape[i / 13]);
 		card.num = (i % 13) + 1;
 		cards[i] = card;
 	}	// set cards
+}
+
+void shakedeak() {
+	srand((unsigned)time(NULL));
 
 	for (int i = 0; i < 300; i++) {	//카드 섞기
 		
@@ -393,8 +399,9 @@ void play(int player_num) {
 
 		if (is_stop == player_num + 1) {	//만약 모든 이들이 stay를 했다면
 			check_winner(player_num, betting_cash);
-			//패 초기화
-			//pop -> 덱 초기화
+			reset_all(player_num);
+			empty_hand(player_num);
+			empty_deck();
 			break;
 		}
 			
@@ -594,3 +601,28 @@ void check_winner(int player_num, int bet) {
 	system("pause");
 }
 
+void reset_all(int player_num) {
+	empty_deck();
+	empty_hand(player_num);
+	for (int i = 0; i < player_num; i++) {
+		player_arr[i].hand_count = 0;
+		player_arr[i].result = 0;
+		player_arr[i].stop = 0;
+	}
+	dealer.hand_count = 0;
+	dealer.result = 0;
+	dealer.stop = 0;
+}
+
+void empty_deck() {
+	while (card_deck.top > -1) {
+		pop();
+	}
+}
+
+void empty_hand(int player_num) {
+	for (int i = 0; i < player_num; i++) {
+		init(&player_arr[i].hand);
+	}
+	init(&dealer.hand);
+}
