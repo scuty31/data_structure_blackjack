@@ -58,8 +58,8 @@ void getCard(int num);	//카드를 받는 함수
 
 void getCard_dealer();	//딜러가 카드를 받는 함수
 
-
-void showcard(element card);	//카드 출력 함수
+void print_all(int player_num);	//모든 player 카드 출력
+void showcard(int num);	//카드 출력 함수
 void shakedeak();	//카드 섞는수함수
 
 
@@ -140,9 +140,30 @@ void delete(hand_cards* haed, hand_cards* removed) {
 void print_hand(hand_cards* head) {
 	hand_cards* p;
 	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
-		showcard(p->data);
+		printf("┌─────┐\t");
 	}
-	showcard(p->data);
+	printf("┌─────┐\n");
+
+	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
+		printf("│%s    │\t", p->data.pattern);
+	}
+	printf("│%s    │\n", p->data.pattern);
+
+	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
+		showcard(p->data.num);
+	}
+	showcard(p->data.num);
+	printf("\n");
+
+	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
+		printf("│    %s│\t", p->data.pattern);
+	}
+	printf("│    %s│\n", p->data.pattern);
+
+	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
+		printf("└─────┘\t");
+	}
+	printf("└─────┘\n");
 }
 //--------------------------------------------------
 
@@ -181,41 +202,21 @@ int start() {
 }
 
 
-void showcard(element card) {	//카드 출력
-	if (card.num == 1) {
-		printf("┌─────┐\n");
-		printf("│%s    │\n", card.pattern);
-		printf("│  A  │\n");
-		printf("│    %s│\n", card.pattern);
-		printf("└─────┘\n");
+void showcard(int num) {	//카드 출력
+	if (num == 1) {
+		printf("│  A  │\t");
 	}
-	else if (card.num < 11) {
-		printf("┌─────┐\n");
-		printf("│%s    │\n", card.pattern);
-		printf("│  %d  │\n", card.num);
-		printf("│    %s│\n", card.pattern);
-		printf("└─────┘\n");
+	else if (num < 11) {
+		printf("│  %d  │\t", num);
 	}
-	else if (card.num == 11) {
-		printf("┌─────┐\n");
-		printf("│%s    │\n", card.pattern);
-		printf("│  J  │\n");
-		printf("│    %s│\n", card.pattern);
-		printf("└─────┘\n");
+	else if (num == 11) {
+		printf("│  J  │\t");
 	}
-	else if (card.num == 12) {
-		printf("┌─────┐\n");
-		printf("│%s    │\n", card.pattern);
-		printf("│  Q  │\n");
-		printf("│    %s│\n", card.pattern);
-		printf("└─────┘\n");
+	else if (num == 12) {
+		printf("│  Q  │\t");
 	}
-	else if (card.num == 13) {
-		printf("┌─────┐\n");
-		printf("│%s    │\n", card.pattern);
-		printf("│  K  │\n");
-		printf("│    %s│\n", card.pattern);
-		printf("└─────┘\n");
+	else if (num == 13) {
+		printf("│  K  │\t");
 	}
 	else {
 		fprintf(stderr, "카드 에러");
@@ -279,15 +280,11 @@ void play(int player_num) {
 	}
 	getCard_dealer();
 
-	printf("--------------------------------------\n");
-	printf("               YOUR CARD\n");
-	printf("--------------------------------------\n");
-	print_hand(&player_arr[0].hand);
-	printf("--------------------------------------\n");
-	
-	printf("\n\n");
+	print_all(player_num);
 
+	printf("\n");
 
+	printf("           HIT OR STAY \n\n");
 		printf("     ┏━━━━━┓         ┏━━━━━━┓\n");
 		printf("     ┃ HIT ┃         ┃ STAY ┃\n");
 		printf("     ┗━━━━━┛         ┗━━━━━━┛\n");
@@ -347,5 +344,34 @@ void getCard_dealer() {
 	if (dealer.hand_count == 1 && data.num > 10) {
 		dealer.result += 10;
 	}
-	dealer.result += data.num;
+	else {
+		dealer.result += data.num;
+	}
+
+}
+
+void print_all(int player_num) {
+	printf("--------------------------------------\n");
+	printf("               YOUR CARD\n");
+	printf("--------------------------------------\n");
+	print_hand(&player_arr[0].hand);
+	printf("--------------------------------------\n");
+	printf("your result = % d\n", player_arr[0].result);
+
+	for (int i = 1; i < player_num; i++) {
+		printf("--------------------------------------\n");
+		printf("           PLAYER %d CARD\n", i + 1);
+		printf("--------------------------------------\n");
+		print_hand(&player_arr[i].hand);
+		printf("--------------------------------------\n");
+		printf("player %d result = %d\n", i+1, player_arr[i].result);
+	}
+
+	printf("--------------------------------------\n");
+	printf("             DEALER CARD\n");
+	printf("--------------------------------------\n");
+	print_hand(&dealer.hand);
+	printf("--------------------------------------\n");
+	printf("dealer result = %d\n", dealer.result);
+	printf("--------------------------------------\n");
 }
