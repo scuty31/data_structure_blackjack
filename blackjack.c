@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <process.h>
 
 #define MAX_CARD_SIZE 52
 #define cash 500
@@ -26,6 +27,7 @@ typedef struct player {
 	int hand_count;
 	int stop;
 	int result;
+	int character;
 	hand_cards hand;
 }player;	//player
 
@@ -33,6 +35,7 @@ typedef struct dealer {
 	int hand_count;
 	int stop;
 	int result;
+	int character;
 	hand_cards hand;
 }deal;	//dealer
 
@@ -54,14 +57,17 @@ void play(int player_num);		//블랙잭 플레이 함수
 
 int betting(int u_coin, int player_num);	//배팅하는 함수
 void getCard(int num);	//카드를 받는 함수
-
+void player_play(int num);	//플레이어 플레이 함수
 
 void getCard_dealer();	//딜러가 카드를 받는 함수
+void dealer_play();		//딜러 플레이 함수
 
 void print_all(int player_num);	//모든 player 카드 출력
 void showcard(int num);	//카드 출력 함수
 void shakedeak();	//카드 섞는수함수
-
+int player_character();		//player 성격
+int dealer_character();		//dealer 성격
+void change(char* hit);
 
 deck card_deck;
 char shape[4][3] = { "♠", "◆", "♥", "♣" };	//카드 문양
@@ -69,14 +75,33 @@ player player_arr[4];	//최대 플레이어 4명
 deal dealer;
 
 int main(void) {
-	printf("─\n-");
+
 	int player_num = start();
+	char select;
 
 	init_stack();
 	shakedeak();
-
 	
-	play(player_num);
+	while (player_arr[0].coin > 0) {
+		play(player_num);
+		
+		for (int i = 1; i < player_num; i++) {	//돈 다 떨어진 player 삭제
+			if (player_arr[i].coin == 0) {
+				for (int j = i; j < player_num - 1; j++) {
+					player_arr[j] = player_arr[j + 1];
+				}
+				player_num--;
+			}
+		}
+
+		system("cls");
+		printf("             게임이 종료되었습니다.\n");
+		printf("            게임을 계속하시겠습니까?         \n");
+		printf("                    [Y/N]                   \n ");
+		printf("command : ");
+		scanf("%c", &select);
+	}
+	
 }
 
 //---------------------스택관련 함수----------------------------
@@ -173,29 +198,40 @@ int start() {
 	char choice1;
 	printf("     블랙잭 게임에 오신 것을 환영합니다!     \n");
 	printf("            게임을 시작하시겠습니까?         \n");
-	printf("                    [Y/N]                      ");
+	printf("                    [Y/N]                   \n ");
 
-	scanf("%c", &choice1);
+	
 
-	// Y나 N을 누르지 않을경우
-	while ((choice1 != 'Y') && (choice1 != 'y') && (choice1 != 'N') && (choice1 != 'n'))
-	{
-		printf("\n");
-		printf("입력이 잘못되었습니다. 다시 입력해주세요 [Y/N].\n");
+	while (1) {
+		printf("\ncommand = ");
 		scanf("%c", &choice1);
-	}
-
-	// Y나 N을 누를 경우
-	if (choice1 == 'Y' || choice1 == 'y') {
-		printf("\n       PLAYER를 몇 명으로 하시겠습니까?  (최대 4명)      ");
-		scanf("%d", &player_num);	//본인 포함 플레이어의 수
-		printf("\n");
-		make_player(player_num);
-		make_dealer();
-	}
-	else if (choice1 == 'N' || choice1 == 'n') {
-		printf("             게임을 종료하겠습니다.             \n");
-		exit(0);
+		if (choice1 == 'Y' || choice1 == 'y') {
+			system("cls");
+			printf("\n       PLAYER를 몇 명으로 하시겠습니까?  (최대 4명)\n");
+			printf("\ncommand = ");
+			scanf("%d", &player_num);	//본인 포함 플레이어의 수
+			if (player_num < 1 || player_num > 4) {
+				printf("입력이 잘못되었습니다. 다시 입력해주세요.");
+			}
+			else {
+				system("cls");
+				printf("\n");
+				make_player(player_num);
+				make_dealer();
+				break;
+			}
+		}
+		else if (choice1 == 'N' || choice1 == 'n') {
+			system("cls");
+			printf("\n");
+			printf("          게임을 종료하겠습니다.             \n");
+			exit(0);
+		}
+		else {
+			system("cls");
+			printf("\n");
+			printf("입력이 잘못되었습니다. 다시 입력해주세요.\n");
+		}
 	}
 	
 	return player_num;
@@ -259,6 +295,7 @@ void make_player(int player_num) {
 		player_arr[i].hand_count = 0;
 		player_arr[i].stop = 0;
 		player_arr[i].result = 0;
+		player_arr[i].character = player_character();
 		init(&player_arr[i].hand);
 	}
 }
@@ -267,31 +304,79 @@ void make_dealer() {
 	dealer.hand_count = 0;
 	dealer.result = 0;
 	dealer.stop = 0;
+	dealer.character = dealer_character();
 	init(&dealer.hand);
 }
 
 void play(int player_num) {
-	int betting_cash = 0;
+	int betting_cash = 0;	//이기면 받음
 	betting_cash = betting(player_arr[0].coin, player_num);
 	int is_stop = 0;
-	char hit[4];
+	char hit[5];
 	for (int i = 0; i < player_num; i++) {
 		getCard(i);
 	}
 	getCard_dealer();
 
-	print_all(player_num);
 
-	printf("\n");
+	
+	while (1)
+	{
+		is_stop = 0;
 
-	printf("           HIT OR STAY \n\n");
-		printf("     ┏━━━━━┓         ┏━━━━━━┓\n");
-		printf("     ┃ HIT ┃         ┃ STAY ┃\n");
-		printf("     ┗━━━━━┛         ┗━━━━━━┛\n");
+		system("cls");
+		printf("your cash = $%d\n", player_arr[0].coin);
+		print_all(player_num);
+		printf("\n");
+		system("pause");
+
+		if (player_arr[0].stop == 0) {
+			printf("           HIT OR STAY \n\n");
+			printf("     ┏━━━━━┓         ┏━━━━━━┓\n");
+			printf("     ┃ HIT ┃         ┃ STAY ┃\n");
+			printf("     ┗━━━━━┛         ┗━━━━━━┛\n");
+			printf("commend : ");
+			scanf("%s", hit);
+
+			change(&hit);
+
+			if (strcmp(hit, "stay") == 0) {
+				player_arr[0].stop = 1;
+				is_stop++;
+			}
+
+
+			//hit 하거나 stay
+
+		}
+		else {	//stay를 했으면
+			is_stop++;
+		}
+
+		for (int i = 1; i < player_num; i++) {
+			if (player_arr[i].stop == 0) {	//hit
+				player_play(i);
+			}
+			else {		//stay를 한 이후
+				is_stop++;
+			}
+		}
+
+		if (dealer.stop == 0) {
+			dealer_play();
+		}
+		else {		//stay를 한 이후
+			is_stop++;
+		}
+
+		if (is_stop == player_num + 1)	//만약 모든 이들이 stay를 했다면
+			break;
+	}
 }
 
 int betting(int u_coin, int player_num) {
 	int bet;
+	system("cls");
 	printf("your cash = $%d\n", u_coin);
 	printf("얼마나 베팅할 것인가요?\n");
 	printf("$ ");
@@ -312,28 +397,50 @@ int betting(int u_coin, int player_num) {
 		}
 	}
 	printf("--------------------------------------\n");
+	system("pause");
 	return bet;
 }
 
-void getCard(int num) {
+void getCard(int num) {		//player가 카드를 받는 함수
 	if (player_arr[num].stop == 1) {
 		return;
 	}
 
 	element data = pop();
 	insert(&player_arr[num].hand, data);
-	player_arr[num].hand_count++;
-
-	if (player_arr[num].hand_count == 1 && data.num > 10) {
+	player_arr[num].hand_count++;		//카드를 받으면 손패 1장 추가
+	
+	/*
+		if (player_arr[num].hand_count == 1 && data.num > 10) {
 		player_arr[num].result += 10;
 	}
 	else {
 		player_arr[num].result += data.num;
 	}
-	
+	*/
+
+	if (data.num > 10) {
+		player_arr[num].result += 10;
+	}
+	else if (num == 0 && data.num == 1) {	//사용자에게 a 카드가 나온다면
+		int a = 0;
+		printf("A를 1로 사용하겠습니까? 아니면 13으로 사용하겠습니까?\n");
+		printf("command : ");
+		scanf("%d", a);
+		player_arr[0].result += a;
+	}
+	else if (num != 0 && data.num == 1) {		//cpu에게 a 카드가 나온다면
+		if (player_arr[num].result + 13 > 21)
+			player_arr[num].result += 1;
+		else
+			player_arr[num].result += 13;
+	}
+	else {		//일반 카드 더하기
+		player_arr[num].result += data.num;
+	}
 }
 
-void getCard_dealer() {
+void getCard_dealer() {		//딜러가 카드를 받는 함수
 	if (dealer.stop == 1)
 		return;
 
@@ -344,13 +451,22 @@ void getCard_dealer() {
 	if (dealer.hand_count == 1 && data.num > 10) {
 		dealer.result += 10;
 	}
+	else if (data.num == 1) {
+		if (dealer.result + 13 > 21)
+			dealer.result += 1;
+		else
+			dealer.result += 13;
+	}
+	else if (data.num > 10) {
+		dealer.result += 10;
+	}
 	else {
 		dealer.result += data.num;
 	}
 
 }
 
-void print_all(int player_num) {
+void print_all(int player_num) {	//카드 출력
 	printf("--------------------------------------\n");
 	printf("               YOUR CARD\n");
 	printf("--------------------------------------\n");
@@ -374,4 +490,63 @@ void print_all(int player_num) {
 	printf("--------------------------------------\n");
 	printf("dealer result = %d\n", dealer.result);
 	printf("--------------------------------------\n");
+}
+
+int player_character() {		//캐릭터 난수
+	int x = rand() % 17;
+	int y = rand() % 13;
+	int z = rand() % 7;
+	int character = (x * y * z) % 50;
+
+	return character;
+}
+
+int dealer_character() {		//캐릭터 난수
+	int x = rand() % 5;
+	int y = rand() % 13;
+	int z = rand() % 7;
+	int character = (x * y * z) % 30;
+
+	return character;
+}
+
+void player_play(int num) {
+	int n;
+	if (player_arr[num].result < 17)		//손패가 17 미만이면 hit
+		getCard(num);
+	else if (player_arr[num].result >= 17 && player_arr[num].result < 19) {	// 현재 손패가 17, 18이면
+		n = rand() % 100;					//100 난수
+		if (n < player_arr[num].character)		//만약 캐릭터 변수보다 낮게 나오면
+			getCard(num);					//hit
+		else								//아니면
+			player_arr[num].stop = 1;		//stay
+	}
+	else									//현재 손패가 19 이상이면
+		player_arr[num].stop = 1;			//stay
+}
+
+void dealer_play() {
+	int n;
+	if (dealer.result < 17)		//손패가 17 미만이면 hit
+		getCard_dealer();
+	else if (dealer.result >= 17 && dealer.result < 19) {	// 현재 손패가 17, 18이면
+		n = rand() % 100;					//100 난수
+		if (n < dealer.character)		//만약 캐릭터 변수보다 낮게 나오면
+			getCard_dealer();					//hit
+		else								//아니면
+			dealer.stop = 1;		//stay
+	}
+	else									//현재 손패가 19 이상이면
+		dealer.stop = 1;			//stay
+}
+
+void change(char* hit) {	//대문자를 소문자로 변경
+	for (int i = 0; i < 5; i++) {
+		{
+			if ((hit[i] >= 'A') && (hit[i] <= 'Z'))
+			{
+				hit[i] = hit[i] - 'A' + 'a';
+			}
+		}
+	}
 }
