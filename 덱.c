@@ -24,13 +24,17 @@ typedef struct DlistNode {
 typedef struct player {
 	int coin;
 	int hand_count;
+	int stop;
+	int result;
 	hand_cards hand;
 }player;	//player
 
 typedef struct dealer {
 	int hand_count;
+	int stop;
+	int result;
 	hand_cards hand;
-}deal;
+}deal;	//dealer
 
 void init_stack();
 int is_empty();
@@ -43,11 +47,17 @@ void insert(hand_cards* before, element data);
 void delete(hand_cards* head, hand_cards* removed);
 void print_hand(hand_cards* head);
 
-void start();
-void make_player();
-void play();
+int start();		//시작 준비
+void make_player(int player_num);	//플레이어 준비 함수
+void make_dealer();				//딜러 준비 함수
+void play(int player_num);		//블랙잭 플레이 함수
 
-int betting(player* user);
+int betting(int u_coin, int player_num);	//배팅하는 함수
+void getCard(int num);	//카드를 받는 함수
+
+
+void getCard_dealer();	//딜러가 카드를 받는 함수
+
 
 void showcard(element card);	//카드 출력 함수
 void shakedeak();	//카드 섞는수함수
@@ -55,18 +65,18 @@ void shakedeak();	//카드 섞는수함수
 
 deck card_deck;
 char shape[4][3] = { "♠", "◆", "♥", "♣" };	//카드 문양
-int player_num;
 player player_arr[4];	//최대 플레이어 4명
 deal dealer;
 
 int main(void) {
-	start();
+	printf("─\n-");
+	int player_num = start();
 
 	init_stack();
 	shakedeak();
 
 	
-	play();
+	play(player_num);
 }
 
 //---------------------스택관련 함수----------------------------
@@ -132,12 +142,13 @@ void print_hand(hand_cards* head) {
 	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
 		showcard(p->data);
 	}
+	showcard(p->data);
 }
 //--------------------------------------------------
 
-// 초기 시작 화면 몇 명의 CPU와 게임을 할 것인지 리턴
-void start() {
-	int i = 0;
+// 초기 시작 화면 몇 명의 CPU와 게임을 할 것인지 정함
+int start() {
+	int player_num;
 	char choice1;
 	printf("     블랙잭 게임에 오신 것을 환영합니다!     \n");
 	printf("            게임을 시작하시겠습니까?         \n");
@@ -157,49 +168,54 @@ void start() {
 	if (choice1 == 'Y' || choice1 == 'y') {
 		printf("\n       PLAYER를 몇 명으로 하시겠습니까?  (최대 4명)      ");
 		scanf("%d", &player_num);	//본인 포함 플레이어의 수
+		printf("\n");
+		make_player(player_num);
+		make_dealer();
 	}
 	else if (choice1 == 'N' || choice1 == 'n') {
 		printf("             게임을 종료하겠습니다.             \n");
 		exit(0);
 	}
+	
+	return player_num;
 }
 
 
 void showcard(element card) {	//카드 출력
 	if (card.num == 1) {
-		printf("-------\n");
-		printf("|%s    |\n", card.pattern);
-		printf("|  A  |\n");
-		printf("|    %s|\n", card.pattern);
-		printf("-------\n");
+		printf("┌─────┐\n");
+		printf("│%s    │\n", card.pattern);
+		printf("│  A  │\n");
+		printf("│    %s│\n", card.pattern);
+		printf("└─────┘\n");
 	}
 	else if (card.num < 11) {
-		printf("-------\n");
-		printf("|%s    |\n", card.pattern);
-		printf("|  %d  |\n", card.num);
-		printf("|    %s|\n", card.pattern);
-		printf("-------\n");
+		printf("┌─────┐\n");
+		printf("│%s    │\n", card.pattern);
+		printf("│  %d  │\n", card.num);
+		printf("│    %s│\n", card.pattern);
+		printf("└─────┘\n");
 	}
 	else if (card.num == 11) {
-		printf("-------\n");
-		printf("|%s    |\n", card.pattern);
-		printf("|  J  |\n");
-		printf("|    %s|\n", card.pattern);
-		printf("-------\n");
+		printf("┌─────┐\n");
+		printf("│%s    │\n", card.pattern);
+		printf("│  J  │\n");
+		printf("│    %s│\n", card.pattern);
+		printf("└─────┘\n");
 	}
 	else if (card.num == 12) {
-		printf("-------\n");
-		printf("|%s    |\n", card.pattern);
-		printf("|  Q  |\n");
-		printf("|    %s|\n", card.pattern);
-		printf("-------\n");
+		printf("┌─────┐\n");
+		printf("│%s    │\n", card.pattern);
+		printf("│  Q  │\n");
+		printf("│    %s│\n", card.pattern);
+		printf("└─────┘\n");
 	}
 	else if (card.num == 13) {
-		printf("-------\n");
-		printf("|%s    |\n", card.pattern);
-		printf("|  K  |\n");
-		printf("|    %s|\n", card.pattern);
-		printf("-------\n");
+		printf("┌─────┐\n");
+		printf("│%s    │\n", card.pattern);
+		printf("│  K  │\n");
+		printf("│    %s│\n", card.pattern);
+		printf("└─────┘\n");
 	}
 	else {
 		fprintf(stderr, "카드 에러");
@@ -207,8 +223,8 @@ void showcard(element card) {	//카드 출력
 }
 
 void shakedeak() {
-	element cards[52];
-	element card;
+	element cards[52];	//카드 덱
+	element card;		//카드
 
 	for (int i = 0; i < 52; i++) {
 		strcpy(card.pattern, shape[i / 13]);
@@ -216,7 +232,7 @@ void shakedeak() {
 		cards[i] = card;
 	}	// set cards
 
-	for (int i = 0; i < 300; i++) {
+	for (int i = 0; i < 300; i++) {	//카드 섞기
 		int x = rand() % 52;
 		int y = rand() % 52;
 		element tmp;
@@ -231,23 +247,105 @@ void shakedeak() {
 		}
 	}
 
-	for (int i = 0; i < 52; i++) {
+	for (int i = 0; i < 52; i++) {	//카드를 덱에 집어넣기
 		push(cards[i]);
 	}
 }
 
-void make_player() {
+void make_player(int player_num) {
 	for (int i = 0; i < player_num; i++) {
-		
-		player_arr[i].coin == cash;
-		//init(player_arr[i].hand);
+		player_arr[i].coin = cash;
+		player_arr[i].hand_count = 0;
+		player_arr[i].stop = 0;
+		player_arr[i].result = 0;
+		init(&player_arr[i].hand);
 	}
 }
 
-void play() {
-
+void make_dealer() {
+	dealer.hand_count = 0;
+	dealer.result = 0;
+	dealer.stop = 0;
+	init(&dealer.hand);
 }
 
-int betting(player* user) {
+void play(int player_num) {
+	int betting_cash = 0;
+	betting_cash = betting(player_arr[0].coin, player_num);
+	int is_stop = 0;
+	char hit[4];
+	for (int i = 0; i < player_num; i++) {
+		getCard(i);
+	}
+	getCard_dealer();
 
+	printf("--------------------------------------\n");
+	printf("               YOUR CARD\n");
+	printf("--------------------------------------\n");
+	print_hand(&player_arr[0].hand);
+	printf("--------------------------------------\n");
+	
+	printf("\n\n");
+
+
+		printf("     ┏━━━━━┓         ┏━━━━━━┓\n");
+		printf("     ┃ HIT ┃         ┃ STAY ┃\n");
+		printf("     ┗━━━━━┛         ┗━━━━━━┛\n");
+}
+
+int betting(int u_coin, int player_num) {
+	int bet;
+	printf("your cash = $%d\n", u_coin);
+	printf("얼마나 베팅할 것인가요?\n");
+	printf("$ ");
+	scanf("%d", &bet);
+	printf("\n");
+	printf("--------------------------------------\n");
+	printf("                c o i n      \n");
+	printf("--------------------------------------\n");
+
+	for (int i = 0; i < player_num; i++) {
+		if (player_arr[i].coin <= bet) {
+			printf("             player %d : ALL-IN\n", i+1);
+			player_arr[i].coin = 0;
+		}
+		else {
+			player_arr[i].coin = player_arr[i].coin - bet;
+			printf("             player %d : $%d\n", i+1, player_arr[i].coin);
+		}
+	}
+	printf("--------------------------------------\n");
+	return bet;
+}
+
+void getCard(int num) {
+	if (player_arr[num].stop == 1) {
+		return;
+	}
+
+	element data = pop();
+	insert(&player_arr[num].hand, data);
+	player_arr[num].hand_count++;
+
+	if (player_arr[num].hand_count == 1 && data.num > 10) {
+		player_arr[num].result += 10;
+	}
+	else {
+		player_arr[num].result += data.num;
+	}
+	
+}
+
+void getCard_dealer() {
+	if (dealer.stop == 1)
+		return;
+
+	element data = pop();
+	insert(&dealer.hand, data);
+	dealer.hand_count++;
+
+	if (dealer.hand_count == 1 && data.num > 10) {
+		dealer.result += 10;
+	}
+	dealer.result += data.num;
 }
