@@ -28,6 +28,7 @@ typedef struct player {
 	int stop;
 	int result;
 	int character;
+	int playable;
 	hand_cards hand;
 }player;	//player
 
@@ -71,7 +72,7 @@ void shakedeak();	//카드 섞는수함수
 int player_character();		//player 성격
 int dealer_character();		//dealer 성격
 void change(char* hit);
-void check_winner(int player_num); //우승자 확인
+void check_winner(int player_num, int bet); //우승자 확인
 void reset_all(int player_num);
 
 deck card_deck;
@@ -81,14 +82,16 @@ player player_arr[4];	//최대 플레이어 4명
 deal dealer;
 
 int main(void) {
-
 	int player_num = start();
 	char select;
+	int players;
 
 	init_stack();
 	makedeak();
 
 	while (player_arr[0].coin > 0) {
+		players = 0;
+
 		shakedeak();
 		play(player_num);
 
@@ -99,11 +102,19 @@ int main(void) {
 		else {
 			for (int i = 1; i < player_num; i++) {	//돈 다 떨어진 player 삭제
 				if (player_arr[i].coin == 0) {
-					for (int j = i; j < player_num - 1; j++) {
-						player_arr[j] = player_arr[j + 1];
-					}
-					player_num--;
+					player_arr[i].stop = 1;
+					player_arr[i].result = 999;
+					player_arr[i].playable = 0;
 				}
+			}
+			for (int i = 1; i < player_num; i++) {		//all-in된 player 계산
+				if (player_arr[i].playable == 0)
+					players++;
+			}
+			if (players == (player_num - 1)) {	//만약 user를 제외한 모든 player가 all-in이 되면 게임 종료
+				system("cls");
+				printf("        you win the game!");
+				exit(0);
 			}
 
 			system("cls");
@@ -194,6 +205,7 @@ void delete(hand_cards* head) {
 	free(p);
 }
 
+//---------------------------------------------------------------------------------------------------------
 void print_hand(hand_cards* head) {
 	hand_cards* p;
 	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
@@ -202,9 +214,9 @@ void print_hand(hand_cards* head) {
 	printf("┌─────┐\n");
 
 	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
-		printf("│%s   │\t", p->data.pattern);
+		printf("│%s    │\t", p->data.pattern);
 	}
-	printf("│%s   │\n", p->data.pattern);
+	printf("│%s    │\n", p->data.pattern);
 
 	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
 		showcard(p->data.num);
@@ -213,15 +225,16 @@ void print_hand(hand_cards* head) {
 	printf("\n");
 
 	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
-		printf("│   %s│\t", p->data.pattern);
+		printf("│    %s│\t", p->data.pattern);
 	}
-	printf("│   %s│\n", p->data.pattern);
+	printf("│    %s│\n", p->data.pattern);
 
 	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {
 		printf("└─────┘\t");
 	}
 	printf("└─────┘\n");
 }
+//---------------------------------------------------------------------------------------------------------
 
 element check_hand(hand_cards* head) {
 	hand_cards* p;
@@ -356,6 +369,7 @@ void make_player(int player_num) {
 		player_arr[i].hand_count = 0;
 		player_arr[i].stop = 0;
 		player_arr[i].result = 0;
+		player_arr[i].playable = 1;
 		player_arr[i].character = player_character();
 		init(&player_arr[i].hand);
 	}
@@ -402,26 +416,22 @@ void play(int player_num) {
 
 			change(&hit);
 
-			if (strcmp(hit, "hit") == 0) {
+			if (strcmp(hit, "hit") == 0) {	//hit
 				if (player_arr[0].result < 21) {
-					if (player_arr[0].result < 21) {
-						getCard(0);
-					}
-					else {
-						player_arr[0].stop == 1;
-						is_stop;
-					}
+					getCard(0);
+					if (player_arr[0].stop == 1)
+						is_stop++;
+				}
+				else {
+					player_arr[0].stop = 1;
+					is_stop++;
 				}
 			}
 
-
-			if (strcmp(hit, "stay") == 0) {
+			if (strcmp(hit, "stay") == 0) {	//stay
 				player_arr[0].stop = 1;
 				is_stop++;
 			}
-
-			//hit 하거나 stay
-
 		}
 		else {	//stay를 했으면
 			is_stop++;
@@ -430,6 +440,9 @@ void play(int player_num) {
 		for (int i = 1; i < player_num; i++) {
 			if (player_arr[i].stop == 0) {	//hit
 				player_play(i);
+				if (player_arr[i].stop == 1) {
+					is_stop++;
+				}
 			}
 			else {		//stay를 한 이후
 				is_stop++;
@@ -438,6 +451,8 @@ void play(int player_num) {
 
 		if (dealer.stop == 0) {
 			dealer_play();
+			if (dealer.stop == 1)
+				is_stop++;
 		}
 		else {		//stay를 한 이후
 			is_stop++;
@@ -446,8 +461,6 @@ void play(int player_num) {
 		if (is_stop == player_num + 1) {	//만약 모든 이들이 stay를 했다면
 			check_winner(player_num, betting_cash);
 			reset_all(player_num);
-			empty_hand(player_num);
-			empty_deck();
 			break;
 		}
 
@@ -475,17 +488,17 @@ int betting(int u_coin, int player_num) {
 
 	printf("\n");
 	printf("--------------------------------------\n");
-	printf("     LEFT COIN      \n");
+	printf("            LEFT COIN      \n");
 	printf("--------------------------------------\n");
 
 	for (int i = 0; i < player_num; i++) {
 		if (player_arr[i].coin <= bet) {
-			printf("     player %d : ALL-IN\n", i + 1);
+			printf("         player %d : ALL-IN\n", i + 1);
 			player_arr[i].coin = 0;
 		}
 		else {
 			player_arr[i].coin = player_arr[i].coin - bet;
-			printf("     player %d : $%d\n", i + 1, player_arr[i].coin);
+			printf("         player %d : $%d\n", i + 1, player_arr[i].coin);
 		}
 	}
 	printf("--------------------------------------\n");
@@ -509,44 +522,28 @@ void getCard(int num) {		//player가 카드를 받는 함수
 	}
 	else if (data.num > 10) {  // 첫 패가 아닌데 데이터 숫자가 10이 넘을 때
 		if (data.num == 11) { // J일 때 (이전 카드 -10)
-			if (player_arr[num].hand.Llist->data.num == 11) { // 이전 카드가 J일 때
-				jqk = player_arr[num].hand.Llist->data.num - 11;
-				player_arr[num].result += jqk;
-			}
-			else if (player_arr[num].hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
-				jqk = player_arr[num].hand.Llist->data.num - 12;
-				player_arr[num].result += jqk;
-			}
-			else if (player_arr[num].hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
-				jqk = player_arr[num].hand.Llist->data.num - 13;
+			if (player_arr[num].hand.Rlist->Rlist->data.num > 10) { // 이전 카드가 J일 때
+				jqk = 0;
 				player_arr[num].result += jqk;
 			}
 			else {  // 나머지 
-				jqk = player_arr[num].hand.Llist->data.num - 10;
+				jqk = player_arr[num].hand.Rlist->Rlist->data.num - 10;
 				player_arr[num].result += jqk;
 			}
 		}
 		else if (data.num == 12) { // Q일 때 (이전 카드 * 2)
-			if (player_arr[num].hand.Llist->data.num == 11) { // 이전 카드가 J일 때
-				jqk = (player_arr[num].hand.Llist->data.num - 1) * 2;
-				player_arr[num].result += jqk;
-			}
-			else if (player_arr[num].hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
-				jqk = (player_arr[num].hand.Llist->data.num - 2) * 2;
-				player_arr[num].result += jqk;
-			}
-			else if (player_arr[num].hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
-				jqk = (player_arr[num].hand.Llist->data.num - 3) * 2;
+			if (player_arr[num].hand.Rlist->Rlist->data.num > 10) { // 이전 카드가 J일 때
+				jqk = 20;
 				player_arr[num].result += jqk;
 			}
 			else {  // 나머지
-				jqk = (player_arr[num].hand.Llist->data.num) * 2;
+				jqk = player_arr[num].hand.Rlist->Rlist->data.num * 2;
 				player_arr[num].result += jqk;
 			}
 		}
 		else { // K일 때 ( 0~10 랜덤)
-				jqk = rand()%10;
-				player_arr[num].result += jqk;
+			jqk = rand() % 10;
+			player_arr[num].result += jqk;
 		}
 	}
 	else if (data.num == 1) {	//A가 나오면
@@ -554,7 +551,7 @@ void getCard(int num) {		//player가 카드를 받는 함수
 			int r = 0;
 			system("cls");
 			printf("     PLAYER HAND : %d\n", player_arr[0].result);
-			printf("\n     A 카드가 나왔습니다.\n     1과 11 중 어떤 점수를 선택하시겠습니까?\n");
+			printf("\n     A 카드가 나왔습니다.\n     1과 11 중 어떤 수를 선택하시겠습니까?\n");
 			printf("              [1/11]");
 			printf("\n     command : ");
 			scanf("%d", &r);	//1과 11 중 하나 선택
@@ -563,7 +560,7 @@ void getCard(int num) {		//player가 카드를 받는 함수
 			while (r != 1 && r != 11) {	//다른 값을 넣으면 다시
 				system("cls");
 				printf("PLAYER1 HAND : %d\n", player_arr[0].result);
-				printf("     A 카드가 나왔습니다.\n1과 11 중 어떤 점수를 선택하시겠습니까?\n");
+				printf("     A 카드가 나왔습니다.\n1과 11 중 어떤 수를 선택하시겠습니까?\n");
 				printf("     입력이 잘못되었습니다. 다시 입력해주세요.\n");
 				printf("\n     command : ");
 				scanf("%d", &r);
@@ -599,56 +596,56 @@ void getCard_dealer() {		//딜러가 카드를 받는 함수
 	}
 	else if (data.num > 10) {  // 첫 패가 아닌데 데이터 숫자가 10이 넘을 때
 		if (data.num == 11) { // J일 때
-			if (dealer.hand.Llist->data.num == 11) { // 이전 카드가 J일 때
-				jqk = dealer.hand.Llist->data.num - 11;
+			if (dealer.hand.Rlist->Rlist->data.num == 11) { // 이전 카드가 J일 때
+				jqk = dealer.hand.Rlist->Rlist->data.num - 11;
 				dealer.result += jqk;
 			}
-			else if (dealer.hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
-				jqk = dealer.hand.Llist->data.num - 12;
+			else if (dealer.hand.Rlist->Rlist->data.num == 12) {  // 이전 카드가 Q일 때
+				jqk = dealer.hand.Rlist->Rlist->data.num - 12;
 				dealer.result += jqk;
 			}
-			else if (dealer.hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
-				jqk = dealer.hand.Llist->data.num - 13;
+			else if (dealer.hand.Rlist->Rlist->data.num == 13) {  // 이전 카드가 K일 때
+				jqk = dealer.hand.Rlist->Rlist->data.num - 13;
 				dealer.result += jqk;
 			}
 			else {  // 나머지 
-				jqk = dealer.hand.Llist->data.num - 10;
+				jqk = dealer.hand.Rlist->Rlist->data.num - 10;
 				dealer.result += jqk;
 			}
 		}
 		else if (data.num == 12) { // Q일 때
-			if (dealer.hand.Llist->data.num == 11) { // 이전 카드가 J일 때
-				jqk = (dealer.hand.Llist->data.num - 1) * 2;
+			if (dealer.hand.Rlist->Rlist->data.num == 11) { // 이전 카드가 J일 때
+				jqk = (dealer.hand.Rlist->Rlist->data.num - 1) * 2;
 				dealer.result += jqk;
 			}
-			else if (dealer.hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
-				jqk = (dealer.hand.Llist->data.num - 2) * 2;
+			else if (dealer.hand.Rlist->Rlist->data.num == 12) {  // 이전 카드가 Q일 때
+				jqk = (dealer.hand.Rlist->Rlist->data.num - 2) * 2;
 				dealer.result += jqk;
 			}
-			else if (dealer.hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
-				jqk = (dealer.hand.Llist->data.num - 3) * 2;
+			else if (dealer.hand.Rlist->Rlist->data.num == 13) {  // 이전 카드가 K일 때
+				jqk = (dealer.hand.Rlist->Rlist->data.num - 3) * 2;
 				dealer.result += jqk;
 			}
 			else {  // 나머지
-				jqk = (dealer.hand.Llist->data.num) * 2;
+				jqk = (dealer.hand.Rlist->Rlist->data.num) * 2;
 				dealer.result += jqk;
 			}
 		}
 		else { // K일 때
-			if (dealer.hand.Llist->data.num == 11) { // 이전 카드가 J일 때
-				jqk = 10 / (dealer.hand.Llist->data.num - 1);
+			if (dealer.hand.Rlist->Rlist->data.num == 11) { // 이전 카드가 J일 때
+				jqk = 10 / (dealer.hand.Rlist->Rlist->data.num - 1);
 				dealer.result += jqk;
 			}
-			else if (dealer.hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
-				jqk = 10 / (dealer.hand.Llist->data.num - 2);
+			else if (dealer.hand.Rlist->Rlist->data.num == 12) {  // 이전 카드가 Q일 때
+				jqk = 10 / (dealer.hand.Rlist->Rlist->data.num - 2);
 				dealer.result += jqk;
 			}
-			else if (dealer.hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
-				jqk = 10 / (dealer.hand.Llist->data.num - 3);
+			else if (dealer.hand.Rlist->Rlist->data.num == 13) {  // 이전 카드가 K일 때
+				jqk = 10 / (dealer.hand.Rlist->Rlist->data.num - 3);
 				dealer.result += jqk;
 			}
 			else {  // 나머지
-				jqk = 10 / dealer.hand.Llist->data.num;
+				jqk = 10 / dealer.hand.Rlist->Rlist->data.num;
 				dealer.result += jqk;
 			}
 		}
@@ -672,27 +669,31 @@ void getCard_dealer() {		//딜러가 카드를 받는 함수
 
 void print_all(int player_num) {	//카드 출력
 	printf("--------------------------------------\n");
-	printf("     PLAYER CARD\n");
+	printf("             PLAYER CARD\n");
 	printf("--------------------------------------\n");
 	print_hand(&player_arr[0].hand);
 	printf("--------------------------------------\n");
-	printf("     PLAYER1 RESULT1 = % d\n", player_arr[0].result);
+	printf("         PLAYER RESULT1 = % d\n", player_arr[0].result);
+	printf("--------------------------------------\n");
 
 	for (int i = 1; i < player_num; i++) {
-		printf("--------------------------------------\n");
-		printf("     PLAYER %d CARD\n", i + 1);
-		printf("--------------------------------------\n");
-		print_hand(&player_arr[i].hand);
-		printf("--------------------------------------\n");
-		printf("     PLAYER %d RESULT = %d\n", i + 1, player_arr[i].result);
+		if (player_arr[i].playable == 1) {
+			printf("\n--------------------------------------\n");
+			printf("           PLAYER %d CARD\n", i + 1);
+			printf("--------------------------------------\n");
+			print_hand(&player_arr[i].hand);
+			printf("--------------------------------------\n");
+			printf("        PLAYER%d RESULT1 = % d\n", i + 1, player_arr[i].result);
+			printf("--------------------------------------\n");
+		}
 	}
 
-	printf("--------------------------------------\n");
-	printf("     DEALER CARD\n");
+	printf("\n--------------------------------------\n");
+	printf("             DEALER CARD\n");
 	printf("--------------------------------------\n");
 	print_hand(&dealer.hand);
 	printf("--------------------------------------\n");
-	printf("     DEALER RESULT = %d\n", dealer.result);
+	printf("         DEALER RESULT = %d\n", dealer.result);
 	printf("--------------------------------------\n");
 }
 
@@ -768,7 +769,7 @@ void check_winner(int player_num, int bet) {
 				num = i;
 				top_card = check_hand(&player_arr[i].hand);	//결과가 가장 큰 player의 top 카드
 			}
-			if (player_arr[i].result == big) {	//결과가 같다면
+			else if (player_arr[i].result == big) {	//결과가 같다면
 				if (player_arr[i].hand_count < player_arr[num].hand_count) {	//손패가 더 적으면
 					big = player_arr[i].result;
 					num = i;
@@ -812,7 +813,7 @@ void check_winner(int player_num, int bet) {
 			if (dealer.hand_count < player_arr[num].hand_count) {	//손패가 더 적으면
 				printf("\n     DEALER WIN\n\n");
 			}
-			if (dealer.hand_count == player_arr[num].hand_count) {	//손패가 같으면
+			else if (dealer.hand_count == player_arr[num].hand_count) {	//손패가 같으면
 				//top_card의 문양이 ♠라면 무조건 이김
 
 				if (top_card.pattern == "◆") {	//top_card의 문양이 ◆라면
@@ -827,6 +828,16 @@ void check_winner(int player_num, int bet) {
 				}
 				else if (top_card.pattern == "♣") {	//top_card의 문양이 ♣라면 모두 짐
 					printf("\n     DEALER WIN\n\n");
+				}
+			}
+			else {
+				if (num == 0) {
+					printf(" YOU WIN\n");
+					player_arr[0].coin += (bet * player_num);
+				}
+				else {
+					printf("PLAYER %d WIN\n", num + 1);
+					player_arr[num].coin += (bet * player_num);
 				}
 			}
 		}
@@ -882,6 +893,6 @@ void empty_hand(int player_num) {
 			delete(&player_arr[i].hand);
 		}
 	}
-	for(int i = 0; i<dealer.hand_count; i++)
+	for (int i = 0; i < dealer.hand_count; i++)
 		delete(&dealer.hand);
 }
