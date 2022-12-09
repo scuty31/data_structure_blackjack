@@ -107,7 +107,7 @@ int main(void) {
 					player_arr[i].playable = 0;
 				}
 			}
-			
+
 			for (int i = 1; i < player_num; i++) {		//all-in된 player 계산
 				if (player_arr[i].playable == 0)
 					players++;
@@ -417,9 +417,10 @@ void play(int player_num) {
 			change(&hit);
 
 			if (strcmp(hit, "hit") == 0) {
-
-				player_play(0);
 				if (player_arr[0].result < 21) {
+					getCard(0);
+				}
+				else{
 					player_arr[0].stop == 1;
 					is_stop++;
 				}
@@ -492,7 +493,7 @@ int betting(int u_coin, int player_num) {
 		scanf("%d", &bet);
 		getchar();
 	}
-	
+
 
 	printf("\n");
 	printf("--------------------------------------\n");
@@ -708,8 +709,8 @@ void check_winner(int player_num, int bet) {
 					//top_card의 문양이 ♠라면 무조건 이김
 					element top_card1 = check_hand(&player_arr[i].hand);
 
-					if(top_card.pattern == "◆") {	//top_card의 문양이 ◆라면
-						if (top_card1.pattern == "♠"){	//스페이드 > 다이아
+					if (top_card.pattern == "◆") {	//top_card의 문양이 ◆라면
+						if (top_card1.pattern == "♠") {	//스페이드 > 다이아
 							big = player_arr[i].result;
 							num = i;
 							top_card = check_hand(&player_arr[i].hand);
@@ -822,6 +823,6 @@ void empty_hand(int player_num) {
 			delete(&player_arr[i].hand);
 		}
 	}
-	for(int i = 0; i<dealer.hand_count; i++)
+	for (int i = 0; i < dealer.hand_count; i++)
 		delete(&dealer.hand);
 }
