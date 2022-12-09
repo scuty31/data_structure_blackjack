@@ -516,6 +516,8 @@ int betting(int u_coin, int player_num) {
 }
 
 void getCard(int num) {		//player가 카드를 받는 함수
+	int jqk = 0;
+
 	if (player_arr[num].stop == 1) {
 		return;
 	}
@@ -524,17 +526,50 @@ void getCard(int num) {		//player가 카드를 받는 함수
 	insert(&player_arr[num].hand, data);
 	player_arr[num].hand_count++;		//카드를 받으면 손패 1장 추가
 
-	/*
-		if (player_arr[num].hand_count == 1 && data.num > 10) {
+	if (player_arr[num].hand_count == 1 && data.num > 10) {  // 첫 패이면서 데이터의 숫자가 10이 넘을 때
 		player_arr[num].result += 10;
 	}
-	else {
-		player_arr[num].result += data.num;
-	}
-	*/
-
-	if (data.num > 10) {	//J, Q, K 나오면 10 더하기
-		player_arr[num].result += 10;
+	else if (data.num > 10) {  // 첫 패가 아닌데 데이터 숫자가 10이 넘을 때
+		if (data.num == 11) { // J일 때 (이전 카드 -10)
+			if (player_arr[num].hand.Llist->data.num == 11) { // 이전 카드가 J일 때
+				jqk = player_arr[num].hand.Llist->data.num - 11;
+				player_arr[num].result += jqk;
+			}
+			else if (player_arr[num].hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
+				jqk = player_arr[num].hand.Llist->data.num - 12;
+				player_arr[num].result += jqk;
+			}
+			else if (player_arr[num].hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
+				jqk = player_arr[num].hand.Llist->data.num - 13;
+				player_arr[num].result += jqk;
+			}
+			else {  // 나머지 
+				jqk = player_arr[num].hand.Llist->data.num - 10;
+				player_arr[num].result += jqk;
+			}
+		}
+		else if (data.num == 12) { // Q일 때 (이전 카드 * 2)
+			if (player_arr[num].hand.Llist->data.num == 11) { // 이전 카드가 J일 때
+				jqk = (player_arr[num].hand.Llist->data.num - 1) * 2;
+				player_arr[num].result += jqk;
+			}
+			else if (player_arr[num].hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
+				jqk = (player_arr[num].hand.Llist->data.num - 2) * 2;
+				player_arr[num].result += jqk;
+			}
+			else if (player_arr[num].hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
+				jqk = (player_arr[num].hand.Llist->data.num - 3) * 2;
+				player_arr[num].result += jqk;
+			}
+			else {  // 나머지
+				jqk = (player_arr[num].hand.Llist->data.num) * 2;
+				player_arr[num].result += jqk;
+			}
+		}
+		else { // K일 때 ( 0~10 랜덤)
+			jqk = rand() % 10;
+			player_arr[num].result += jqk;
+		}
 	}
 	else if (data.num == 1) {	//A가 나오면
 		if (num == 0) {	//user라면
@@ -545,7 +580,6 @@ void getCard(int num) {		//player가 카드를 받는 함수
 			printf("command : ");
 			scanf("%d", &r);	//1과 11 중 하나 선택
 			getchar();
-
 			while (r != 1 && r != 11) {	//다른 값을 넣으면 다시
 				system("cls");
 				printf("your hand : %d\n", player_arr[0].result);
@@ -572,6 +606,7 @@ void getCard(int num) {		//player가 카드를 받는 함수
 }
 
 void getCard_dealer() {		//딜러가 카드를 받는 함수
+	int jqk = 0;
 	if (dealer.stop == 1)
 		return;
 
@@ -579,8 +614,64 @@ void getCard_dealer() {		//딜러가 카드를 받는 함수
 	insert(&dealer.hand, data);
 	dealer.hand_count++;
 
-	if (dealer.hand_count == 1 && data.num > 10) {
+	if (dealer.hand_count == 1 && data.num > 10) {  // 첫 패이면서 데이터의 숫자가 10이 넘을 때
 		dealer.result += 10;
+	}
+	else if (data.num > 10) {  // 첫 패가 아닌데 데이터 숫자가 10이 넘을 때
+		if (data.num == 11) { // J일 때
+			if (dealer.hand.Llist->data.num == 11) { // 이전 카드가 J일 때
+				jqk = dealer.hand.Llist->data.num - 11;
+				dealer.result += jqk;
+			}
+			else if (dealer.hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
+				jqk = dealer.hand.Llist->data.num - 12;
+				dealer.result += jqk;
+			}
+			else if (dealer.hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
+				jqk = dealer.hand.Llist->data.num - 13;
+				dealer.result += jqk;
+			}
+			else {  // 나머지 
+				jqk = dealer.hand.Llist->data.num - 10;
+				dealer.result += jqk;
+			}
+		}
+		else if (data.num == 12) { // Q일 때
+			if (dealer.hand.Llist->data.num == 11) { // 이전 카드가 J일 때
+				jqk = (dealer.hand.Llist->data.num - 1) * 2;
+				dealer.result += jqk;
+			}
+			else if (dealer.hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
+				jqk = (dealer.hand.Llist->data.num - 2) * 2;
+				dealer.result += jqk;
+			}
+			else if (dealer.hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
+				jqk = (dealer.hand.Llist->data.num - 3) * 2;
+				dealer.result += jqk;
+			}
+			else {  // 나머지
+				jqk = (dealer.hand.Llist->data.num) * 2;
+				dealer.result += jqk;
+			}
+		}
+		else { // K일 때
+			if (dealer.hand.Llist->data.num == 11) { // 이전 카드가 J일 때
+				jqk = 10 / (dealer.hand.Llist->data.num - 1);
+				dealer.result += jqk;
+			}
+			else if (dealer.hand.Llist->data.num == 12) {  // 이전 카드가 Q일 때
+				jqk = 10 / (dealer.hand.Llist->data.num - 2);
+				dealer.result += jqk;
+			}
+			else if (dealer.hand.Llist->data.num == 13) {  // 이전 카드가 K일 때
+				jqk = 10 / (dealer.hand.Llist->data.num - 3);
+				dealer.result += jqk;
+			}
+			else {  // 나머지
+				jqk = 10 / dealer.hand.Llist->data.num;
+				dealer.result += jqk;
+			}
+		}
 	}
 	else if (data.num == 1) {		//딜러가 A를 받으면
 		if (dealer.result + 11 > 21) {		//22 이상이면 1 추가
@@ -596,7 +687,6 @@ void getCard_dealer() {		//딜러가 카드를 받는 함수
 	else {
 		dealer.result += data.num;
 	}
-
 }
 
 void print_all(int player_num) {	//카드 출력
