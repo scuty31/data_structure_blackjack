@@ -596,17 +596,9 @@ void getCard_dealer() {		//딜러가 카드를 받는 함수
 	}
 	else if (data.num > 10) {  // 첫 패가 아닌데 데이터 숫자가 10이 넘을 때
 		if (data.num == 11) { // J일 때
-			if (dealer.hand.Rlist->Rlist->data.num == 11) { // 이전 카드가 J일 때
-				jqk = dealer.hand.Rlist->Rlist->data.num - 11;
-				dealer.result += jqk;
-			}
-			else if (dealer.hand.Rlist->Rlist->data.num == 12) {  // 이전 카드가 Q일 때
-				jqk = dealer.hand.Rlist->Rlist->data.num - 12;
-				dealer.result += jqk;
-			}
-			else if (dealer.hand.Rlist->Rlist->data.num == 13) {  // 이전 카드가 K일 때
-				jqk = dealer.hand.Rlist->Rlist->data.num - 13;
-				dealer.result += jqk;
+			if (dealer.hand.Rlist->Rlist->data.num > 10) { // 이전 카드가 J일 때
+				jqk = 0;
+				player_arr[num].result += jqk;
 			}
 			else {  // 나머지 
 				jqk = dealer.hand.Rlist->Rlist->data.num - 10;
@@ -614,16 +606,8 @@ void getCard_dealer() {		//딜러가 카드를 받는 함수
 			}
 		}
 		else if (data.num == 12) { // Q일 때
-			if (dealer.hand.Rlist->Rlist->data.num == 11) { // 이전 카드가 J일 때
-				jqk = (dealer.hand.Rlist->Rlist->data.num - 1) * 2;
-				dealer.result += jqk;
-			}
-			else if (dealer.hand.Rlist->Rlist->data.num == 12) {  // 이전 카드가 Q일 때
-				jqk = (dealer.hand.Rlist->Rlist->data.num - 2) * 2;
-				dealer.result += jqk;
-			}
-			else if (dealer.hand.Rlist->Rlist->data.num == 13) {  // 이전 카드가 K일 때
-				jqk = (dealer.hand.Rlist->Rlist->data.num - 3) * 2;
+			if (dealer.hand.Rlist->Rlist->data.num > 10) { // 이전 카드가 J일 때
+				jqk = 20;
 				dealer.result += jqk;
 			}
 			else {  // 나머지
@@ -631,23 +615,9 @@ void getCard_dealer() {		//딜러가 카드를 받는 함수
 				dealer.result += jqk;
 			}
 		}
-		else { // K일 때
-			if (dealer.hand.Rlist->Rlist->data.num == 11) { // 이전 카드가 J일 때
-				jqk = 10 / (dealer.hand.Rlist->Rlist->data.num - 1);
-				dealer.result += jqk;
-			}
-			else if (dealer.hand.Rlist->Rlist->data.num == 12) {  // 이전 카드가 Q일 때
-				jqk = 10 / (dealer.hand.Rlist->Rlist->data.num - 2);
-				dealer.result += jqk;
-			}
-			else if (dealer.hand.Rlist->Rlist->data.num == 13) {  // 이전 카드가 K일 때
-				jqk = 10 / (dealer.hand.Rlist->Rlist->data.num - 3);
-				dealer.result += jqk;
-			}
-			else {  // 나머지
-				jqk = 10 / dealer.hand.Rlist->Rlist->data.num;
-				dealer.result += jqk;
-			}
+		else { // K일 때 ( 0~10 랜덤)
+			jqk = rand() % 10;
+			dealer.result += jqk;
 		}
 	}
 	else if (data.num == 1) {		//딜러가 A를 받으면
