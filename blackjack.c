@@ -198,7 +198,7 @@ void delete(hand_cards* head) {
 
 	hand_cards* p;
 
-	for (p = head->Rlist; p->Rlist != head; p = p->Rlist) {}
+	p = head->Llist;
 	p->Rlist->Llist = p->Llist;
 	p->Llist->Rlist = p->Rlist;
 
@@ -598,7 +598,7 @@ void getCard_dealer() {		//딜러가 카드를 받는 함수
 		if (data.num == 11) { // J일 때
 			if (dealer.hand.Rlist->Rlist->data.num > 10) { // 이전 카드가 J일 때
 				jqk = 0;
-				player_arr[num].result += jqk;
+				dealer.result += jqk;
 			}
 			else {  // 나머지 
 				jqk = dealer.hand.Rlist->Rlist->data.num - 10;
