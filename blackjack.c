@@ -40,40 +40,45 @@ typedef struct dealer {
 	hand_cards hand;
 }deal;	//dealer
 
+//스택 관련
 void init_stack();
 int is_empty();
 int is_full();
 void push(element card);
 element pop();
 
+//이중연결리스트
 void init(hand_cards* head);
 void insert(hand_cards* before, element data);
 void delete(hand_cards* head, hand_cards* removed);
 void print_hand(hand_cards* head);
+element check_hand(hand_cards* head);
 
 int start();		//시작 준비
 void makedeak();	//패 만들기
-void make_player(int player_num);	//플레이어 준비 함수
-void make_dealer();				//딜러 준비 함수
-void play(int player_num);		//블랙잭 플레이 함수
-void empty_deck();			//덱 비우는 함수
-void empty_hand(int player_num); //손패를 비우는 함수
+void shakedeak();	//카드 섞는수함수
 
-int betting(int u_coin, int player_num);	//배팅하는 함수
+void make_player(int player_num);	//플레이어 준비 함수
+int player_character();		//player 성격
 void getCard(int num);	//카드를 받는 함수
 void player_play(int num);	//플레이어 플레이 함수
 
+void make_dealer();				//딜러 준비 함수
+int dealer_character();		//dealer 성격
 void getCard_dealer();	//딜러가 카드를 받는 함수
 void dealer_play();		//딜러 플레이 함수
 
+void play(int player_num);		//블랙잭 플레이 함수
+int betting(int u_coin, int player_num);	//배팅하는 함수
 void print_all(int player_num);	//모든 player 카드 출력
 void showcard(int num);	//카드 출력 함수
-void shakedeak();	//카드 섞는수함수
-int player_character();		//player 성격
-int dealer_character();		//dealer 성격
-void change(char* hit);
 void check_winner(int player_num, int bet); //우승자 확인
-void reset_all(int player_num);
+
+void reset_all(int player_num);	//모두 리셋
+void empty_deck();			//덱 초기화
+void empty_hand(int player_num);	//손패 초기화
+
+void change(char* hit);	//문자열 소문자 변환 함수
 
 deck card_deck;
 char shape[4][3] = { "♠", "◆", "♥", "♣" };	//카드 문양
@@ -643,7 +648,7 @@ void print_all(int player_num) {	//카드 출력
 	printf("--------------------------------------\n");
 	print_hand(&player_arr[0].hand);
 	printf("--------------------------------------\n");
-	printf("         PLAYER RESULT1 = % d\n", player_arr[0].result);
+	printf("         PLAYER RESULT = % d\n", player_arr[0].result);
 	printf("--------------------------------------\n");
 
 	for (int i = 1; i < player_num; i++) {
@@ -653,7 +658,7 @@ void print_all(int player_num) {	//카드 출력
 			printf("--------------------------------------\n");
 			print_hand(&player_arr[i].hand);
 			printf("--------------------------------------\n");
-			printf("        PLAYER%d RESULT1 = % d\n", i + 1, player_arr[i].result);
+			printf("        PLAYER%d RESULT = % d\n", i + 1, player_arr[i].result);
 			printf("--------------------------------------\n");
 		}
 	}
